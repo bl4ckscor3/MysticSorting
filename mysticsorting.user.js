@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mystic Sorting
 // @namespace    bl4ckscor3
-// @version      1.0
+// @version      1.0.1
 // @description  Adds sorting functionality to the Mystic portion of EyeWire's Scouts' Log
 // @author       bl4ckscor3
 // @match        https://eyewire.org/
@@ -113,7 +113,7 @@
 
         function addSortingButtons() {
             let th = document.querySelector("#sl-main-table > table > thead > tr").children;
-            //"data-sort-direction" holds the current sort order. in order to sort normally first, this needs to be set to "reverse" by default
+            //"data-sort-direction" holds the current sort order. in order to sort normally first, these need to be set to "reverse" by default
             let buttonCellId = createButton("Sort by Cell ID", "reverse");
             let buttonStatus = createButton("Sort by Status", "reverse");
             let buttonPlayerA = createButton("Sort by Player A", "reverse");
@@ -174,7 +174,16 @@
             tableBody.empty(); //remove previous table entries
 
             for(let i = 0; i < table.length; i++) { //add sorted table entries
-                tableBody.append(table[i].domElement);
+                let elem = table[i].domElement;
+                let jumpButton = elem.querySelector(".sl-jump-cell");
+                let cell = jumpButton.getAttribute("data-cell");
+
+                tableBody.append(elem);
+                $(jumpButton).click(() => {
+                    $("#closeScoutslog").click();
+                    SFX.play("change_cell");
+                    window.tomni.setCell({id: cell});
+                })
             }
         }
 
