@@ -35,7 +35,7 @@
         const tableObserver = new MutationObserver(prepareTable); //need to observe the table to wait for it to load
         var table = [];
         var lastSortOrder = {
-            sortingFunction: sortByCellName,
+            comparator: compareCellName,
             reverse: false
         };
 
@@ -101,8 +101,8 @@
 
             addCellAmountInfo(aCells, bCells);
             let lastSortButton = addSortingButtons();
-            updateButtonState(lastSortButton, lastSortOrder.reverse);
-            sortAndReplace(lastSortOrder.sortingFunction, lastSortOrder.reverse);
+            updateButtonState(lastSortButton, lastSortOrder.reverse); //fix button to fit the last sort order
+            sortAndReplace(lastSortOrder.comparator, lastSortOrder.reverse); //preserve order state when switching tabs or reopening the scouts' log
         }
 
         function addCellAmountInfo(aCells, bCells) {
@@ -128,12 +128,12 @@
             //the default is, that cells are sorted by name. as such, the first click of the sort button should reverse the sorting order
             let buttonCellName = createButton("Sort by Cell Name", "normal");
 
-            $(buttonCellId).prependTo(th[0]).click(() => sortAndReplace(sortByCellId, switchSortDir(buttonCellId)));
-            $(buttonCellName).prependTo(th[0]).click(() => sortAndReplace(sortByCellName, switchSortDir(buttonCellName)));
-            $(buttonStatus).prependTo(th[1]).click(() => sortAndReplace(sortByStatus, switchSortDir(buttonStatus)));
-            $(buttonPlayerA).prependTo(th[2]).click(() => sortAndReplace(sortByPlayerA, switchSortDir(buttonPlayerA)));
-            $(buttonPlayerB).prependTo(th[3]).click(() => sortAndReplace(sortByPlayerB, switchSortDir(buttonPlayerB)));
-            $(buttonTimestamp).prependTo(th[4]).click(() => sortAndReplace(sortByTimestamp, switchSortDir(buttonTimestamp)));
+            $(buttonCellId).prependTo(th[0]).click(() => sortAndReplace(compareCellId, switchSortDir(buttonCellId)));
+            $(buttonCellName).prependTo(th[0]).click(() => sortAndReplace(compareCellName, switchSortDir(buttonCellName)));
+            $(buttonStatus).prependTo(th[1]).click(() => sortAndReplace(compareStatus, switchSortDir(buttonStatus)));
+            $(buttonPlayerA).prependTo(th[2]).click(() => sortAndReplace(comparePlayerA, switchSortDir(buttonPlayerA)));
+            $(buttonPlayerB).prependTo(th[3]).click(() => sortAndReplace(comparePlayerB, switchSortDir(buttonPlayerB)));
+            $(buttonTimestamp).prependTo(th[4]).click(() => sortAndReplace(compareTimestamp, switchSortDir(buttonTimestamp)));
             
             function createButton(title, defaultOrder) {
                 let button = document.createElement("input");
@@ -149,25 +149,25 @@
                 return updateButtonState(button, button.getAttribute("data-sort-direction") !== "reverse")
             }
 
-            let sortFun = lastSortOrder.sortingFunction;
+            let lastComparator = lastSortOrder.comparator;
 
-            //for correctly setting the data-sort-direction of the button that has last been clicked, as sort order should be preserved when switching tabs or opening and closing the scouts' log
-            if(sortFun === sortByCellName) {
+            //for correctly setting the data-sort-direction of the button that has last been clicked, as sort order should be preserved when switching tabs or reopening the scouts' log
+            if(lastComparator === compareCellName) {
                 return buttonCellName;
             }
-            else if(sortFun === sortByCellId) {
-                return sortByCellId;
+            else if(lastComparator === compareCellId) {
+                return compareCellId;
             }
-            else if(sortFun === sortByStatus) {
+            else if(lastComparator === compareStatus) {
                 return buttonStatus;
             }
-            else if(sortFun === sortByPlayerA) {
+            else if(lastComparator === comparePlayerA) {
                 return buttonPlayerA;
             }
-            else if(sortFun === sortByPlayerB) {
+            else if(lastComparator === comparePlayerB) {
                 return buttonPlayerB;
             }
-            else if(sortFun === sortByTimestamp) {
+            else if(lastComparator === compareTimestamp) {
                 return buttonTimestamp;
             }
         }
@@ -187,19 +187,19 @@
             document.head.appendChild(theStyle);
         }
 
-        function sortAndReplace(sortingFunction, reverseSort) {
+        function sortAndReplace(comparator, reverse) {
             let tableBody = $(getTableBody());
 
-            if(reverseSort) {
-                table.sort((x, y) => reverse(sortingFunction(x, y)));
+            if(reverse) {
+                table.sort((x, y) => comparator(x, y) * -1);
             }
             else {
-                table.sort(sortingFunction);
+                table.sort(comparator);
             }
 
             lastSortOrder = {
-                sortingFunction: sortingFunction,
-                reverse: reverseSort
+                comparator: comparator,
+                reverse: reverse
             };
             tableBody.empty(); //remove previous table entries
 
@@ -209,7 +209,7 @@
                 let cell = jumpButton.getAttribute("data-cell");
 
                 tableBody.append(elem);
-                $(jumpButton).click(() => {
+                $(jumpButton).click(() => { //fixes jump buttons not working after sorting
                     $("#closeScoutslog").click();
                     SFX.play("change_cell");
                     window.tomni.setCell({id: cell});
@@ -217,27 +217,27 @@
             }
         }
 
-        function sortByCellName(x, y) {
+        function compareCellName(x, y) {
             return stringCompare(x.cellName, y.cellName);
         }
 
-        function sortByCellId(x, y) {
+        function compareCellId(x, y) {
             return numberCompare(x.cellId, y.cellId);
         }
 
-        function sortByStatus(x, y) {
+        function compareStatus(x, y) {
             return stringCompare(x.status, y.status);
         }
 
-        function sortByPlayerA(x, y) {
+        function comparePlayerA(x, y) {
             return stringCompare(x.playerA, y.playerA);
         }
 
-        function sortByPlayerB(x, y) {
+        function comparePlayerB(x, y) {
             return stringCompare(x.playerB, y.playerB);
         }
 
-        function sortByTimestamp(x, y) {
+        function compareTimestamp(x, y) {
             return numberCompare(x.timestamp, y.timestamp);
         }
 
@@ -259,10 +259,6 @@
 
         function numberCompare(x, y) {
             return y - x;
-        }
-
-        function reverse(relation) {
-            return relation * -1;
         }
 
         function getTableBody() {
