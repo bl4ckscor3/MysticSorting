@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mystic Sorting
 // @namespace    bl4ckscor3
-// @version      1.0.1
+// @version      1.1
 // @description  Adds sorting functionality to the Mystic portion of EyeWire's Scouts' Log
 // @author       bl4ckscor3
 // @match        https://eyewire.org/
@@ -34,6 +34,10 @@
         const logObserver = new MutationObserver(addSortingFunctionality);
         const tableObserver = new MutationObserver(prepareTable); //need to observe the table to wait for it to load
         var table = [];
+        var lastSortOrder = {
+            sortingFunction: sortByCellName,
+            reverse: false
+        };
 
         addButtonStyle();
         logObserver.observe(document.getElementsByClassName("slPanelContent")[0], {
@@ -96,7 +100,9 @@
             }
 
             addCellAmountInfo(aCells, bCells);
-            addSortingButtons();
+            let lastSortButton = addSortingButtons();
+            updateButtonState(lastSortButton, lastSortOrder.reverse);
+            sortAndReplace(lastSortOrder.sortingFunction, lastSortOrder.reverse);
         }
 
         function addCellAmountInfo(aCells, bCells) {
@@ -140,15 +146,35 @@
             }
 
             function switchSortDir(button) {
-                if(button.getAttribute("data-sort-direction") === "reverse") {
-                    button.setAttribute("data-sort-direction", "normal");
-                    return false;
-                }
-                else {
-                    button.setAttribute("data-sort-direction", "reverse");
-                    return true;
-                }
+                return updateButtonState(button, button.getAttribute("data-sort-direction") !== "reverse")
             }
+
+            let sortFun = lastSortOrder.sortingFunction;
+
+            //for correctly setting the data-sort-direction of the button that has last been clicked, as sort order should be preserved when switching tabs or opening and closing the scouts' log
+            if(sortFun === sortByCellName) {
+                return buttonCellName;
+            }
+            else if(sortFun === sortByCellId) {
+                return sortByCellId;
+            }
+            else if(sortFun === sortByStatus) {
+                return buttonStatus;
+            }
+            else if(sortFun === sortByPlayerA) {
+                return buttonPlayerA;
+            }
+            else if(sortFun === sortByPlayerB) {
+                return buttonPlayerB;
+            }
+            else if(sortFun === sortByTimestamp) {
+                return buttonTimestamp;
+            }
+        }
+
+        function updateButtonState(button, reverse) {
+            button.setAttribute("data-sort-direction", reverse ? "reverse" : "normal");
+            return reverse;
         }
 
         function addButtonStyle() {
@@ -170,7 +196,11 @@
             else {
                 table.sort(sortingFunction);
             }
-            
+
+            lastSortOrder = {
+                sortingFunction: sortingFunction,
+                reverse: reverseSort
+            };
             tableBody.empty(); //remove previous table entries
 
             for(let i = 0; i < table.length; i++) { //add sorted table entries
