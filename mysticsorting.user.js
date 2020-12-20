@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mystic Sorting
 // @namespace    bl4ckscor3
-// @version      1.1
+// @version      1.1.1
 // @description  Adds sorting functionality to the Mystic portion of EyeWire's Scouts' Log
 // @author       bl4ckscor3
 // @match        https://eyewire.org/
@@ -156,7 +156,7 @@
                 return buttonCellName;
             }
             else if(lastComparator === compareCellId) {
-                return compareCellId;
+                return buttonCellId;
             }
             else if(lastComparator === compareStatus) {
                 return buttonStatus;
