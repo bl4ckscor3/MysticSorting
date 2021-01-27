@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mystic Sorting
 // @namespace    bl4ckscor3
-// @version      1.1.1
+// @version      1.1.2
 // @description  Adds sorting functionality to the Mystic portion of EyeWire's Scouts' Log
 // @author       bl4ckscor3
 // @match        https://eyewire.org/
@@ -76,7 +76,7 @@
             table = [];
 
             for(let row of rows) {
-                let firstColumnText = row.children[0].innerText.split(" (");
+                let firstColumn = row.children[0];
                 let playerA = row.children[2].innerText;
                 let playerB = row.children[3].innerText;
 
@@ -90,8 +90,8 @@
 
                 table.push({
                     domElement: row,
-                    cellName: firstColumnText[0],
-                    cellId: firstColumnText[1].split(")")[0],
+                    cellName: firstColumn.innerText.split(" (")[0],
+                    cellId: firstColumn.children[0].getAttribute("data-cell"),
                     status: row.children[1].innerText,
                     playerA: playerA,
                     playerB: playerB,
