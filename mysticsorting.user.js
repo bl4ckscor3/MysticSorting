@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mystic Sorting
 // @namespace    bl4ckscor3
-// @version      1.1.2
+// @version      1.1.3
 // @description  Adds sorting functionality to the Mystic portion of EyeWire's Scouts' Log
 // @author       bl4ckscor3
 // @match        https://eyewire.org/
@@ -55,7 +55,7 @@
             let addedNodes = mutations[0].addedNodes;
 
             for(let node of addedNodes) {
-                if(node.classList.contains("slOptions")) { //slOptions contains the buttons for "Need Player A", "Player A", "Need Player B", ...
+                if(node.classList && node.classList.contains("slOptions")) { //slOptions contains the buttons for "Need Player A", "Player A", "Need Player B", ...
                     tableObserver.observe(getTableBody(), { //wait for the cells to load
                         childList: true,
                         attributes: false,
@@ -206,14 +206,30 @@
             for(let i = 0; i < table.length; i++) { //add sorted table entries
                 let elem = table[i].domElement;
                 let jumpButton = elem.querySelector(".sl-jump-cell");
-                let cell = jumpButton.getAttribute("data-cell");
 
                 tableBody.append(elem);
-                $(jumpButton).click(() => { //fixes jump buttons not working after sorting
-                    $("#closeScoutslog").click();
-                    SFX.play("change_cell");
-                    window.tomni.setCell({id: cell});
-                })
+
+                if(jumpButton) {
+                    let cell = jumpButton.getAttribute("data-cell");
+
+                    $(jumpButton).click(() => { //fixes jump buttons not working after sorting
+                        $("#closeScoutslog").click();
+                        SFX.play("change_cell");
+                        window.tomni.setCell({id: cell});
+                    })
+                }
+                else { //in the open logs section the jump buttons jump to tasks and not cells, so this has to be handled separately
+                    jumpButton = elem.querySelector(".sl-jump-task");
+
+                    if(jumpButton) {
+                        let task = jumpButton.getAttribute("data-task");
+
+                        $(jumpButton).click(() => { //fixes jump buttons not working after sorting
+                            $("#closeScoutslog").click();
+                            window.tomni.jumpToTaskID(task);
+                        })
+                    }
+                }
             }
         }
 
