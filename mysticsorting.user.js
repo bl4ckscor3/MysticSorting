@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mystic Sorting
 // @namespace    bl4ckscor3
-// @version      1.1.3
+// @version      1.1.4
 // @description  Adds sorting functionality to the Mystic portion of EyeWire's Scouts' Log
 // @author       bl4ckscor3
 // @match        https://eyewire.org/
@@ -217,6 +217,12 @@
                         SFX.play("change_cell");
                         window.tomni.setCell({id: cell});
                     })
+
+                    let cellButton = elem.querySelector(".sl-mystic-cell");
+                    let cellId = table[i].cellId
+                    $(cellButton).click(function() {
+                        window.scoutsLog.S.getMysticCellEntries(cellId);
+                    });
                 }
                 else { //in the open logs section the jump buttons jump to tasks and not cells, so this has to be handled separately
                     jumpButton = elem.querySelector(".sl-jump-task");
@@ -228,6 +234,11 @@
                             $("#closeScoutslog").click();
                             window.tomni.jumpToTaskID(task);
                         })
+
+                        let taskButton = elem.querySelector(".sl-task");
+                        $(taskButton).click(function() {
+                            window.scoutsLog.S.getTaskEntries(task);
+                        });
                     }
                 }
             }
